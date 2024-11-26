@@ -80,8 +80,8 @@ markers <- FindAllMarkers(scRNA, logfc.threshold = 0.1, min.pct = 0, only.pos = 
 
 DefaultAssay(scRNA)
 
-plot_heatmap(dataset = scRNA, 
-              features = c("LRP1"),
+plot_heatmap(dataset = scRNA,
+              features = c("LRP1", "TLE1"),
               sort_var = c("seurat_clusters","sample"),
               anno_var = c("seurat_clusters","sample","percent.mt","S.Score","G2M.Score"),
               anno_colors = list("Set2",

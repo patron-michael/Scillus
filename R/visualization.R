@@ -255,14 +255,13 @@ plot_heatmap <- function(dataset,
         #}
         
         mat <- as.matrix(mat[rownames(mat) %in% features,])
-        colnames(mat) <- features
         
         anno <- dataset@meta.data %>%
                 rownames_to_column(var = "barcode") %>%
                 arrange(!!!syms(sort_var))
         
         mat <- t(mat)
-        mat <- mat[,match(anno$barcode, colnames(mat))]
+        mat <- mat[match(anno$barcode, rownames(mat)),]
         mat <- t(mat)
         rownames(mat) <- features
         
