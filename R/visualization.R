@@ -250,9 +250,9 @@ plot_heatmap <- function(dataset,
         
         mat <- GetAssayData(object = dataset, assay = DefaultAssay(dataset), layer = "scale.data")
         
-        if (!(features %in% rownames(mat))) {
-            stop('Incorrect input of features')
-        }
+        #if (!(features %in% rownames(mat))) {
+        #    stop('Incorrect input of features')
+        #}
         
         mat <- as.matrix(mat[rownames(mat) %in% features,])
         colnames(mat) <- features
