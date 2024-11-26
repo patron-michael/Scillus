@@ -1,3 +1,6 @@
+Sys.setenv(R_LIBS_USER = "/shared/ifbstor1/home/pmichael/siric/Rlib/R4_3_1")
+.libPaths("/shared/ifbstor1/home/pmichael/siric/Rlib/R4_3_1")
+
 library(Scillus)
 library(Seurat)
 library(magrittr)
@@ -78,7 +81,7 @@ markers <- FindAllMarkers(scRNA, logfc.threshold = 0.1, min.pct = 0, only.pos = 
 DefaultAssay(scRNA)
 
 plot_heatmap(dataset = scRNA, 
-              markers = markers,
+              features = c("LRP1"),
               sort_var = c("seurat_clusters","sample"),
               anno_var = c("seurat_clusters","sample","percent.mt","S.Score","G2M.Score"),
               anno_colors = list("Set2",
@@ -91,9 +94,9 @@ plot_heatmap(dataset = scRNA,
              row_font_size = 5)
 
 
-plot_cluster_go(markers, cluster_name = '1', org = "human", ont = "CC")
+plot_cluster_go(features = c("LRP1"), cluster_name = '1', org = "human", ont = "CC")
 
-plot_all_cluster_go(markers, org = 'human', ont = "CC")
+plot_all_cluster_go(features = c("LRP1"), dataset= scRNA, org = 'human', ont = "CC")
 
 plot_measure(dataset = scRNA, measures = c("KRT14","S100A8","FAM138A","percent.mt"), 
              group_by = "group",

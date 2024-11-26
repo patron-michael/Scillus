@@ -119,8 +119,8 @@ plot_scdata <- function(dataset,
         colors <- set_colors(pal, length(unique(df[[color_by]])))
 
         ggplot(df) +
-                geom_point(aes(x = .data$UMAP_1,
-                               y = .data$UMAP_2,
+                geom_point(aes(x = .data$umap_1,
+                               y = .data$umap_2,
                                color = .data[[color_by]])) +
                 scale_color_manual(values = colors) +
                 theme(panel.grid.major = element_blank(),
@@ -128,7 +128,7 @@ plot_scdata <- function(dataset,
                       panel.background = element_blank(),
                       panel.border = element_rect(colour = "black", 
                                                   fill = NA, 
-                                                  size = 1, 
+                                                  linewidth = 1, 
                                                   linetype = 1),
                       axis.line = element_blank(),
                       aspect.ratio = 1) +
@@ -239,36 +239,33 @@ plot_measure_dim <- function(dataset,
 #' 
 
 plot_heatmap <- function(dataset, 
-                         markers,
+                         features,
                          sort_var = c('seurat_clusters'),
-                         n = 8, 
+                         # n = 8, 
                          anno_var, 
                          anno_colors,
                          hm_limit = c(-2, 0, 2), 
                          hm_colors = c("#4575b4","white","#d73027"),
                          row_font_size = 12) {
         
-        mat <- GetAssayData(object = dataset, assay = DefaultAssay(dataset), slot = "scale.data")
+        mat <- GetAssayData(object = dataset, assay = DefaultAssay(dataset), layer = "scale.data")
         
-        if (is.data.frame(markers)) {
-            genes <- get_top_genes(dataset, markers, n)
-        } else if (is.character(markers)) {
-            genes <- markers
-        } else {
-            stop('Incorrect input of markers')
+        if (!(features %in% rownames(mat))) {
+            stop('Incorrect input of features')
         }
         
-        
-        mat <- mat[match(genes, rownames(mat)),]
+        mat <- as.matrix(mat[rownames(mat) %in% features,])
+        colnames(mat) <- features
         
         anno <- dataset@meta.data %>%
                 rownames_to_column(var = "barcode") %>%
                 arrange(!!!syms(sort_var))
         
         mat <- t(mat)
-        mat <- mat[match(anno$barcode, rownames(mat)),]
+        mat <- mat[,match(anno$barcode, colnames(mat))]
         mat <- t(mat)
-    
+        rownames(mat) <- features
+        
         annos <- list()
         
         for (i in seq_along(1:length(anno_var))) {
@@ -487,7 +484,7 @@ plot_stat <- function(dataset,
 #' @export
 #' 
 
-plot_cluster_go <- function (markers, cluster_name, topn = 100, org, ...) {
+plot_cluster_go <- function (features, cluster_name, org, ...) {
         
         pkg_name <- ifelse(org == "human", "org.Hs.eg.db", "org.Mm.eg.db")
         
@@ -501,15 +498,9 @@ plot_cluster_go <- function (markers, cluster_name, topn = 100, org, ...) {
                      call. = FALSE)
         }
         
-        gene_list <- markers %>% 
-                filter(.data$cluster == cluster_name) %>% 
-                arrange(.data$p_val_adj) %>% 
-                head(topn) %>% 
-                pull(.data$gene)
-        
         db <- if(org == "human") org.Hs.eg.db::org.Hs.eg.db else org.Mm.eg.db::org.Mm.eg.db
         
-        res <- clusterProfiler::enrichGO(gene = gene_list, 
+        res <- clusterProfiler::enrichGO(gene = features, 
                                          OrgDb = db, 
                                          keyType = "SYMBOL", ...)
         
@@ -552,13 +543,13 @@ plot_cluster_go <- function (markers, cluster_name, topn = 100, org, ...) {
 #' @export
 #' 
 
-plot_all_cluster_go <- function (markers, org = "human", ...) {
+plot_all_cluster_go <- function (features, dataset, org = "human", ...) {
         
         lst <- list()
-        clusters <- levels(markers$cluster)
+        clusters <- Idents(dataset)
         lst <- purrr::map(.x = clusters, 
                           .f = plot_cluster_go, 
-                          markers = markers, 
+                          features = features, 
                           org = org, ...)
         
         patchwork::wrap_plots(lst, ncol = 2)
